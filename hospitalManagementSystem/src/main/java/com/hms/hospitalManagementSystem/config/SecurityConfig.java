@@ -43,8 +43,13 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/hms-admin/auth/login").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/hms-admin/realtime/stream").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/hms-admin/doctors").permitAll()
+                        .requestMatchers("/hms-public/**").permitAll()
                         .requestMatchers("/hms-admin/auth/register").hasRole("ADMIN")
                         .requestMatchers("/hms-admin/**").hasRole("ADMIN")
+                        .requestMatchers("/hms-doctor/**").hasRole("DOCTOR")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
