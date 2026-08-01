@@ -1,48 +1,101 @@
-import React from 'react';
-import { Search } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowRight } from 'lucide-react';
 
-const HeroSection = () => {
+import bg1 from '../../../assets/bg-image/bg-image-1.png';
+import bg2 from '../../../assets/bg-image/bg-image-2.png';
+import bg3 from '../../../assets/bg-image/bg-image-3.png';
+
+export default function HeroSection() {
+  const images = [bg1, bg2, bg3];
+  const [currentIdx, setCurrentIdx] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIdx((prev) => (prev + 1) % images.length);
+    }, 5000); // 5 seconds interval
+    return () => clearInterval(timer);
+  }, [images.length]);
+
   return (
-    <>
-      {/* Background Decorations (Matching AdminLogin light theme) */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-        <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-blue-200/40 blur-[100px]" />
-        <div className="absolute top-[20%] right-[0%] w-[40%] h-[40%] rounded-full bg-indigo-200/40 blur-[100px]" />
-        <div className="absolute bottom-[-10%] left-[20%] w-[60%] h-[50%] rounded-full bg-blue-100/40 blur-[120px]" />
+    <div className="relative h-screen w-full overflow-hidden select-none font-sans flex flex-col items-center justify-center">
+      {/* Background Carousel Images */}
+      <div className="absolute inset-0 z-0">
+        {images.map((img, idx) => (
+          <div
+            key={idx}
+            style={{ backgroundImage: `url(${img})` }}
+            className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out ${idx === currentIdx ? 'opacity-100 scale-105' : 'opacity-0 scale-100'
+              } transform duration-[2000ms]`}
+          />
+        ))}
+        {/* Deep Slate Dark Overlay for maximum text readability */}
+        <div className="absolute inset-0 bg-slate-950/40 z-10" />
       </div>
 
-      {/* Main Hero Content */}
-      <main className="relative z-10 flex flex-col items-center justify-center pt-24 pb-48 px-4 text-center">
-        
-        <div className="max-w-4xl w-full mt-24 mb-16 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-          
-          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-8">
-            Advanced Healthcare at Your Fingertips
+      {/* Content wrapper centered vertically with reduced gap */}
+      <div className="relative z-20 w-full max-w-5xl mx-auto px-6 flex flex-col items-center justify-center gap-10 mt-16">
+
+        {/* Hero Center Contents */}
+        <div className="text-center max-w-3xl">
+          {/* Headline */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-white leading-tight tracking-tight drop-shadow-md">
+            World-Class Care, <span className="text-[rgb(139,235,28)]">Close to You</span>
           </h1>
-          <p className="text-lg text-slate-600 mb-12 max-w-2xl mx-auto">
-            Find the best doctors, book appointments, and access world-class medical services with ease.
+          {/* Sub-headline */}
+          <p className="mt-4 text-base sm:text-lg text-slate-100 font-medium tracking-wide drop-shadow-sm leading-relaxed">
+            Experience advanced medical excellence with a compassionate touch at BrightCare Hospital.
           </p>
-
-          {/* Search Bar */}
-          <div className="relative group max-w-3xl mx-auto">
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-[2rem] blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
-            <div className="relative flex items-center bg-white/90 backdrop-blur-xl border border-white shadow-xl shadow-slate-200/50 rounded-full p-2 pl-6">
-              <input 
-                type="text" 
-                placeholder="Search For Doctors, Specialities And Health Check Packages..."
-                className="flex-1 bg-transparent border-none outline-none text-slate-900 placeholder-slate-400 text-lg py-3 px-2 w-full"
-              />
-              <button className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full transition-colors shadow-lg shadow-blue-600/30 flex-shrink-0">
-                <Search className="w-6 h-6" />
-              </button>
-            </div>
-          </div>
-
         </div>
 
-      </main>
-    </>
-  );
-};
+        {/* Glassy Quick Action Bar */}
+        <div className="w-full relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+          {/* Glass backdrop */}
+          <div className="absolute inset-0 bg-slate-950/30 backdrop-blur-xl -z-10" />
 
-export default HeroSection;
+          {/* Action Links */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 divide-y sm:divide-y-0 md:divide-x divide-white/15 text-white">
+            <a
+              href="#appointment"
+              className="flex items-center justify-between p-6 hover:bg-white/10 transition-colors duration-300 group cursor-pointer"
+            >
+              <span className="font-bold text-sm tracking-wide uppercase">Book Appointment</span>
+              <div className="w-8 h-8 rounded-full border border-white/30 flex items-center justify-center group-hover:bg-white group-hover:text-blue-900 group-hover:scale-105 transition-all">
+                <ArrowRight className="w-4 h-4" />
+              </div>
+            </a>
+
+            <a
+              href="#doctors"
+              className="flex items-center justify-between p-6 hover:bg-white/10 transition-colors duration-300 group cursor-pointer"
+            >
+              <span className="font-bold text-sm tracking-wide uppercase">Find Doctors</span>
+              <div className="w-8 h-8 rounded-full border border-white/30 flex items-center justify-center group-hover:bg-white group-hover:text-blue-900 group-hover:scale-105 transition-all">
+                <ArrowRight className="w-4 h-4" />
+              </div>
+            </a>
+
+            <a
+              href="#healthcheck"
+              className="flex items-center justify-between p-6 hover:bg-white/10 transition-colors duration-300 group cursor-pointer"
+            >
+              <span className="font-bold text-sm tracking-wide uppercase">Book Health Check</span>
+              <div className="w-8 h-8 rounded-full border border-white/30 flex items-center justify-center group-hover:bg-white group-hover:text-blue-900 group-hover:scale-105 transition-all">
+                <ArrowRight className="w-4 h-4" />
+              </div>
+            </a>
+
+            <a
+              href="#facilities"
+              className="flex items-center justify-between p-6 hover:bg-white/10 transition-colors duration-300 group cursor-pointer"
+            >
+              <span className="font-bold text-sm tracking-wide uppercase">Our Facilities</span>
+              <div className="w-8 h-8 rounded-full border border-white/30 flex items-center justify-center group-hover:bg-white group-hover:text-blue-900 group-hover:scale-105 transition-all">
+                <ArrowRight className="w-4 h-4" />
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
