@@ -200,4 +200,31 @@ public class DoctorService {
 
         return response;
     }
+
+    public DoctorResponse getDoctorByEmail(String email) {
+        Doctor doctor = doctorRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Doctor not found with email: " + email));
+        return toResponse(doctor);
+    }
+
+    public DoctorResponse updateDoctorProfile(String email, String contactNumber, String password, MultipartFile imageFile) {
+        Doctor doctor = doctorRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Doctor not found with email: " + email));
+
+        if (contactNumber != null && !contactNumber.trim().isEmpty()) {
+            doctor.setContactNumber(contactNumber);
+        }
+
+        if (password != null && !password.trim().isEmpty()) {
+            doctor.setPassword(passwordEncoder.encode(password));
+        }
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String profileImagePath = fileStorageService.storeFile(imageFile);
+            doctor.setProfileImagePath(profileImagePath);
+        }
+
+        Doctor saved = doctorRepository.save(doctor);
+        return toResponse(saved);
+    }
 }
