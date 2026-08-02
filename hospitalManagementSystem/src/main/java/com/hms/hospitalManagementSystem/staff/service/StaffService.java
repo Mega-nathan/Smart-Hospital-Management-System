@@ -5,6 +5,8 @@ import com.hms.hospitalManagementSystem.staff.dto.StaffRequest;
 import com.hms.hospitalManagementSystem.staff.dto.StaffResponse;
 import com.hms.hospitalManagementSystem.staff.model.Staff;
 import com.hms.hospitalManagementSystem.staff.repository.StaffRepository;
+import com.hms.hospitalManagementSystem.department.model.Department;
+import com.hms.hospitalManagementSystem.department.repository.DepartmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -15,21 +17,30 @@ public class StaffService {
 
     private final StaffRepository staffRepository;
     private final RealtimeService realtimeService;
+    private final DepartmentRepository departmentRepository;
 
     @Autowired
-    public StaffService(StaffRepository staffRepository, RealtimeService realtimeService) {
+    public StaffService(StaffRepository staffRepository, RealtimeService realtimeService, DepartmentRepository departmentRepository) {
         this.staffRepository = staffRepository;
         this.realtimeService = realtimeService;
+        this.departmentRepository = departmentRepository;
     }
 
     public StaffResponse createStaff(StaffRequest request) {
         String staffId = generateStaffId();
         
+        Department department = null;
+        if (request.getDepartmentId() != null) {
+            department = departmentRepository.findById(request.getDepartmentId())
+                    .orElseThrow(() -> new IllegalArgumentException("Department not found with ID: " + request.getDepartmentId()));
+        }
+
         Staff staff = Staff.builder()
                 .staffId(staffId)
                 .name(request.getName())
                 .role(request.getRole())
                 .department(request.getDepartment())
+                .departmentEntity(department)
                 .shift(request.getShift())
                 .status(request.getStatus())
                 .build();
@@ -64,6 +75,14 @@ public class StaffService {
         staff.setShift(request.getShift());
         staff.setStatus(request.getStatus());
 
+        if (request.getDepartmentId() != null) {
+            Department department = departmentRepository.findById(request.getDepartmentId())
+                    .orElseThrow(() -> new IllegalArgumentException("Department not found with ID: " + request.getDepartmentId()));
+            staff.setDepartmentEntity(department);
+        } else {
+            staff.setDepartmentEntity(null);
+        }
+
         Staff saved = staffRepository.save(staff);
 
         // Notify frontend subscribers
@@ -97,6 +116,10 @@ public class StaffService {
         response.setName(staff.getName());
         response.setRole(staff.getRole());
         response.setDepartment(staff.getDepartment());
+        if (staff.getDepartmentEntity() != null) {
+            response.setDepartmentId(staff.getDepartmentEntity().getId());
+            response.setDepartmentName(staff.getDepartmentEntity().getName());
+        }
         response.setShift(staff.getShift());
         response.setStatus(staff.getStatus());
         return response;

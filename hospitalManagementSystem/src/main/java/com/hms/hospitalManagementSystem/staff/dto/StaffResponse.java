@@ -7,6 +7,8 @@ public class StaffResponse {
     private String name;
     private String role;
     private String department;
+    private Long departmentId;
+    private String departmentName;
     private String shift;
     private String status;
 
@@ -67,5 +69,21 @@ public class StaffResponse {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Long getDepartmentId() {
+        return departmentId;
+    }
+
+    public void setDepartmentId(Long departmentId) {
+        this.departmentId = departmentId;
+    }
+
+    public String getDepartmentName() {
+        return departmentName;
+    }
+
+    public void setDepartmentName(String departmentName) {
+        this.departmentName = departmentName;
     }
 }

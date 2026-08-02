@@ -12,6 +12,8 @@ public class StaffRequest {
 
     private String department;
 
+    private Long departmentId;
+
     @NotBlank(message = "Shift assignment is required")
     private String shift;
 
@@ -59,5 +61,13 @@ public class StaffRequest {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Long getDepartmentId() {
+        return departmentId;
+    }
+
+    public void setDepartmentId(Long departmentId) {
+        this.departmentId = departmentId;
     }
 }

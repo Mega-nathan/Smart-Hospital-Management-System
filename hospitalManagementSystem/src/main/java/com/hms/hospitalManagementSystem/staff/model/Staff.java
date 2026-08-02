@@ -2,10 +2,14 @@ package com.hms.hospitalManagementSystem.staff.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import com.hms.hospitalManagementSystem.department.model.Department;
 
 @Entity
 @Table(name = "staff_members")
@@ -26,6 +30,10 @@ public class Staff {
 
     private String department;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department departmentEntity;
+
     private String shift; // Morning, Evening, Night
 
     @Column(nullable = false)
@@ -34,12 +42,13 @@ public class Staff {
     public Staff() {
     }
 
-    public Staff(Long id, String staffId, String name, String role, String department, String shift, String status) {
+    public Staff(Long id, String staffId, String name, String role, String department, Department departmentEntity, String shift, String status) {
         this.id = id;
         this.staffId = staffId;
         this.name = name;
         this.role = role;
         this.department = department;
+        this.departmentEntity = departmentEntity;
         this.shift = shift;
         this.status = status;
     }
@@ -89,6 +98,14 @@ public class Staff {
         this.department = department;
     }
 
+    public Department getDepartmentEntity() {
+        return departmentEntity;
+    }
+
+    public void setDepartmentEntity(Department departmentEntity) {
+        this.departmentEntity = departmentEntity;
+    }
+
     public String getShift() {
         return shift;
     }
@@ -111,6 +128,7 @@ public class Staff {
         private String name;
         private String role;
         private String department;
+        private Department departmentEntity;
         private String shift;
         private String status;
 
@@ -139,6 +157,11 @@ public class Staff {
             return this;
         }
 
+        public StaffBuilder departmentEntity(Department departmentEntity) {
+            this.departmentEntity = departmentEntity;
+            return this;
+        }
+
         public StaffBuilder shift(String shift) {
             this.shift = shift;
             return this;
@@ -150,7 +173,7 @@ public class Staff {
         }
 
         public Staff build() {
-            return new Staff(id, staffId, name, role, department, shift, status);
+            return new Staff(id, staffId, name, role, department, departmentEntity, shift, status);
         }
     }
 }
