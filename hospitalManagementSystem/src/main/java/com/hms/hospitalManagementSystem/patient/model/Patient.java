@@ -2,10 +2,16 @@ package com.hms.hospitalManagementSystem.patient.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import com.hms.hospitalManagementSystem.department.model.Department;
+import com.hms.hospitalManagementSystem.department.model.Bed;
 import java.time.LocalDate;
 
 @Entity
@@ -37,11 +43,19 @@ public class Patient {
     @Column(nullable = false)
     private String status; // Admitted, Discharged, Under Observation
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "current_bed_id")
+    private Bed currentBed;
+
     public Patient() {
     }
 
     public Patient(Long id, String patientId, String name, Integer age, String gender, String bloodGroup,
-                   String contact, LocalDate admissionDate, String problem, String status) {
+                   String contact, LocalDate admissionDate, String problem, String status, Department department, Bed currentBed) {
         this.id = id;
         this.patientId = patientId;
         this.name = name;
@@ -52,6 +66,8 @@ public class Patient {
         this.admissionDate = admissionDate;
         this.problem = problem;
         this.status = status;
+        this.department = department;
+        this.currentBed = currentBed;
     }
 
     // Builder pattern helper
@@ -139,6 +155,22 @@ public class Patient {
         this.status = status;
     }
 
+    public Department getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(Department department) {
+        this.department = department;
+    }
+
+    public Bed getCurrentBed() {
+        return currentBed;
+    }
+
+    public void setCurrentBed(Bed currentBed) {
+        this.currentBed = currentBed;
+    }
+
     public static class PatientBuilder {
         private Long id;
         private String patientId;
@@ -150,6 +182,8 @@ public class Patient {
         private LocalDate admissionDate;
         private String problem;
         private String status;
+        private Department department;
+        private Bed currentBed;
 
         public PatientBuilder id(Long id) {
             this.id = id;
@@ -201,8 +235,18 @@ public class Patient {
             return this;
         }
 
+        public PatientBuilder department(Department department) {
+            this.department = department;
+            return this;
+        }
+
+        public PatientBuilder currentBed(Bed currentBed) {
+            this.currentBed = currentBed;
+            return this;
+        }
+
         public Patient build() {
-            return new Patient(id, patientId, name, age, gender, bloodGroup, contact, admissionDate, problem, status);
+            return new Patient(id, patientId, name, age, gender, bloodGroup, contact, admissionDate, problem, status, department, currentBed);
         }
     }
 }

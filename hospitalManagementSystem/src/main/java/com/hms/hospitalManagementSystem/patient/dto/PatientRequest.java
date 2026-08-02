@@ -24,6 +24,10 @@ public class PatientRequest {
 
     private LocalDate admissionDate;
 
+    private Long departmentId;
+
+    private Long bedId;
+
     private String problem;
 
     @NotBlank(message = "Status is required")
@@ -94,5 +98,21 @@ public class PatientRequest {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Long getDepartmentId() {
+        return departmentId;
+    }
+
+    public void setDepartmentId(Long departmentId) {
+        this.departmentId = departmentId;
+    }
+
+    public Long getBedId() {
+        return bedId;
+    }
+
+    public void setBedId(Long bedId) {
+        this.bedId = bedId;
     }
 }

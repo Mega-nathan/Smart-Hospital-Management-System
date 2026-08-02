@@ -14,6 +14,10 @@ public class PatientResponse {
     private LocalDate admissionDate;
     private String problem;
     private String status;
+    private Long departmentId;
+    private String departmentName;
+    private Long bedId;
+    private String bedCode;
 
     public PatientResponse() {
     }
@@ -96,5 +100,37 @@ public class PatientResponse {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Long getDepartmentId() {
+        return departmentId;
+    }
+
+    public void setDepartmentId(Long departmentId) {
+        this.departmentId = departmentId;
+    }
+
+    public String getDepartmentName() {
+        return departmentName;
+    }
+
+    public void setDepartmentName(String departmentName) {
+        this.departmentName = departmentName;
+    }
+
+    public Long getBedId() {
+        return bedId;
+    }
+
+    public void setBedId(Long bedId) {
+        this.bedId = bedId;
+    }
+
+    public String getBedCode() {
+        return bedCode;
+    }
+
+    public void setBedCode(String bedCode) {
+        this.bedCode = bedCode;
     }
 }
