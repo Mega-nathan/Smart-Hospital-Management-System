@@ -10,14 +10,12 @@ import {
   Search, 
   Menu,
   ChevronDown,
-  UserCog,
-  Bed
+  UserCog
 } from 'lucide-react';
 import { DoctorsManagement } from './components/DoctorsManagement';
 import { PatientsManagement } from './components/PatientsManagement';
 import { StaffManagement } from './components/StaffManagement';
 import { DepartmentManagement } from './components/DepartmentManagement';
-import { BedManagement } from './components/BedManagement';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -107,18 +105,7 @@ const Dashboard = () => {
             }`}
           >
             <Building2 className="w-4 h-4" />
-            Department Management
-          </button>
-          <button
-            onClick={() => setActiveTab('Beds')}
-            className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeTab === 'Beds'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600'
-            }`}
-          >
-            <Bed className="w-4 h-4" />
-            Bed Management
+            Department & Bed Management
           </button>
         </nav>
 
@@ -184,7 +171,6 @@ const Dashboard = () => {
           {activeTab === 'Patients' && <PatientsManagement />}
           {activeTab === 'Staff' && <StaffManagement />}
           {activeTab === 'Departments' && <DepartmentManagement />}
-          {activeTab === 'Beds' && <BedManagement />}
         </main>
       </div>
     </div>
