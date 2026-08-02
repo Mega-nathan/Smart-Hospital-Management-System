@@ -15,8 +15,8 @@ const DoctorLogin = () => {
     setLoading(true);
 
     try {
-      // Assuming a similar endpoint for doctor login
-      const response = await fetch('http://localhost:8081/hms-doctor/auth/login', {
+      // The backend uses a unified login endpoint for both admins and doctors
+      const response = await fetch('http://localhost:8081/hms-admin/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,9 +49,9 @@ const DoctorLogin = () => {
       console.error('Login error:', err);
       // Fallback for UI demonstration purposes if backend is not ready
       if (err.message.includes('Failed to fetch') || err.message.includes('Connection failed')) {
-         setError('Connection failed. Please make sure the backend server is running.');
+        setError('Connection failed. Please make sure the backend server is running.');
       } else {
-         setError(err.message || 'An error occurred during login.');
+        setError(err.message || 'An error occurred during login.');
       }
     } finally {
       setLoading(false);

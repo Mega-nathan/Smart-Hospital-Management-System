@@ -5,7 +5,11 @@ import bg1 from '../../../assets/bg-image/bg-image-1.png';
 import bg2 from '../../../assets/bg-image/bg-image-2.png';
 import bg3 from '../../../assets/bg-image/bg-image-3.png';
 
-export default function HeroSection() {
+interface HeroSectionProps {
+  onBookAppointment?: () => void;
+}
+
+export default function HeroSection({ onBookAppointment }: HeroSectionProps) {
   const images = [bg1, bg2, bg3];
   const [currentIdx, setCurrentIdx] = useState(0);
 
@@ -54,15 +58,15 @@ export default function HeroSection() {
 
           {/* Action Links */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 divide-y sm:divide-y-0 md:divide-x divide-white/15 text-white">
-            <a
-              href="#appointment"
-              className="flex items-center justify-between p-6 hover:bg-white/10 transition-colors duration-300 group cursor-pointer"
+            <button
+              onClick={onBookAppointment}
+              className="flex items-center justify-between p-6 hover:bg-white/10 transition-colors duration-300 group cursor-pointer w-full text-left"
             >
               <span className="font-bold text-sm tracking-wide uppercase">Book Appointment</span>
               <div className="w-8 h-8 rounded-full border border-white/30 flex items-center justify-center group-hover:bg-white group-hover:text-blue-900 group-hover:scale-105 transition-all">
                 <ArrowRight className="w-4 h-4" />
               </div>
-            </a>
+            </button>
 
             <a
               href="#doctors"
