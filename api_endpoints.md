@@ -396,3 +396,71 @@ These endpoints allow the currently logged-in doctor to interact with their own 
   ]
   ```
 
+---
+
+## 📅 Appointment Management Endpoints
+
+### 1. Book an Appointment (Public)
+* **Method**: `POST`
+* **URL**: `/hms-public/appointments`
+* **Auth Required**: None (Public)
+* **Request Header**: `Content-Type: application/json`
+* **Request Body**:
+  ```json
+  {
+    "patientName": "John Doe",
+    "patientPhone": "9876543210",
+    "patientEmail": "johndoe@example.com",
+    "appointmentDate": "2026-08-05",
+    "timeSlot": "10:00 AM - 11:30 AM",
+    "consultationType": "In-Person",
+    "notes": "Regular heart checkup.",
+    "doctorId": 3
+  }
+  ```
+* **Response Body**:
+  ```json
+  {
+    "id": 12,
+    "patientName": "John Doe",
+    "patientPhone": "9876543210",
+    "patientEmail": "johndoe@example.com",
+    "appointmentDate": "2026-08-05",
+    "timeSlot": "10:00 AM - 11:30 AM",
+    "consultationType": "In-Person",
+    "notes": "Regular heart checkup.",
+    "doctorId": 3,
+    "doctorName": "Dr. Sarah Smith",
+    "status": "Pending"
+  }
+  ```
+
+### 2. List All Appointments
+* **Method**: `GET`
+* **URL**: `/hms-admin/appointments`
+* **Auth Required**: `ROLE_ADMIN`
+
+### 3. List Appointments by Doctor
+* **Method**: `GET`
+* **URL**: `/hms-admin/appointments/doctor/{doctorId}`
+* **Auth Required**: `ROLE_ADMIN`
+
+### 4. Approve / Cancel an Appointment
+* **Method**: `PUT`
+* **URL**: `/hms-admin/appointments/{id}/status`
+* **Auth Required**: `ROLE_ADMIN`
+* **Query Parameters**:
+  - `status` (String, Required): Target status (e.g., `Approved`, `Cancelled`)
+
+---
+
+## 🔔 Real-time Notifications Endpoint
+
+### 1. Subscribe to Real-time Roster/Dashboard Stream (SSE)
+* **Method**: `GET`
+* **URL**: `/hms-admin/realtime/stream`
+* **Auth Required**: `ROLE_ADMIN`
+* **Response Header**: `Content-Type: text/event-stream`
+* **Description**: Server-Sent Events (SSE) stream broadcasting real-time triggers for Doctor, Patient, and Staff updates.
+
+
