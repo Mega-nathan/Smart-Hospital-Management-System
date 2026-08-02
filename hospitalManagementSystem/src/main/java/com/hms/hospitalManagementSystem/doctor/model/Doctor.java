@@ -4,11 +4,14 @@ import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import com.hms.hospitalManagementSystem.department.model.Department;
 import java.util.List;
 
 @Entity
@@ -49,6 +52,10 @@ public class Doctor {
 
     private String departmentWardAssignment;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;
+
     @ElementCollection
     @CollectionTable(name = "doctor_availability", joinColumns = @JoinColumn(name = "doctor_id"))
     private List<AvailabilitySlot> availability;
@@ -68,7 +75,7 @@ public class Doctor {
 
     public Doctor(Long id, String doctorId, String fullName, String specialization, List<String> qualifications,
                   String licenseNumber, Integer yearsOfExperience, String contactNumber, String email,
-                  List<String> consultationTypes, String departmentWardAssignment, List<AvailabilitySlot> availability,
+                  List<String> consultationTypes, String departmentWardAssignment, Department department, List<AvailabilitySlot> availability,
                   Double consultationFee, String password, String role, String profileImagePath) {
         this.id = id;
         this.doctorId = doctorId;
@@ -81,6 +88,7 @@ public class Doctor {
         this.email = email;
         this.consultationTypes = consultationTypes;
         this.departmentWardAssignment = departmentWardAssignment;
+        this.department = department;
         this.availability = availability;
         this.consultationFee = consultationFee;
         this.password = password;
@@ -176,6 +184,14 @@ public class Doctor {
         this.departmentWardAssignment = departmentWardAssignment;
     }
 
+    public Department getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(Department department) {
+        this.department = department;
+    }
+
     public List<AvailabilitySlot> getAvailability() {
         return availability;
     }
@@ -232,6 +248,7 @@ public class Doctor {
         private String email;
         private List<String> consultationTypes;
         private String departmentWardAssignment;
+        private Department department;
         private List<AvailabilitySlot> availability;
         private Double consultationFee;
         private String password;
@@ -296,6 +313,11 @@ public class Doctor {
             return this;
         }
 
+        public DoctorBuilder department(Department department) {
+            this.department = department;
+            return this;
+        }
+
         public DoctorBuilder availability(List<AvailabilitySlot> availability) {
             this.availability = availability;
             return this;
@@ -324,7 +346,7 @@ public class Doctor {
         public Doctor build() {
             return new Doctor(id, doctorId, fullName, specialization, qualifications, licenseNumber,
                     yearsOfExperience, contactNumber, email, consultationTypes, departmentWardAssignment,
-                    availability, consultationFee, password, role, profileImagePath);
+                    department, availability, consultationFee, password, role, profileImagePath);
         }
     }
 }

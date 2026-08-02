@@ -32,6 +32,8 @@ public class DoctorRequest {
 
     private String departmentWardAssignment;
 
+    private Long departmentId;
+
     @Valid
     private List<AvailabilitySlotDto> availability;
 
@@ -114,6 +116,14 @@ public class DoctorRequest {
 
     public void setDepartmentWardAssignment(String departmentWardAssignment) {
         this.departmentWardAssignment = departmentWardAssignment;
+    }
+
+    public Long getDepartmentId() {
+        return departmentId;
+    }
+
+    public void setDepartmentId(Long departmentId) {
+        this.departmentId = departmentId;
     }
 
     public List<AvailabilitySlotDto> getAvailability() {

@@ -14,6 +14,8 @@ public class DoctorResponse {
     private String email;
     private List<String> consultationTypes;
     private String departmentWardAssignment;
+    private Long departmentId;
+    private String departmentName;
     private List<AvailabilitySlotDto> availability;
     private Double consultationFee;
     private String role;
@@ -109,6 +111,22 @@ public class DoctorResponse {
 
     public void setDepartmentWardAssignment(String departmentWardAssignment) {
         this.departmentWardAssignment = departmentWardAssignment;
+    }
+
+    public Long getDepartmentId() {
+        return departmentId;
+    }
+
+    public void setDepartmentId(Long departmentId) {
+        this.departmentId = departmentId;
+    }
+
+    public String getDepartmentName() {
+        return departmentName;
+    }
+
+    public void setDepartmentName(String departmentName) {
+        this.departmentName = departmentName;
     }
 
     public List<AvailabilitySlotDto> getAvailability() {

@@ -6,6 +6,8 @@ import com.hms.hospitalManagementSystem.doctor.dto.DoctorResponse;
 import com.hms.hospitalManagementSystem.doctor.model.AvailabilitySlot;
 import com.hms.hospitalManagementSystem.doctor.model.Doctor;
 import com.hms.hospitalManagementSystem.doctor.repository.DoctorRepository;
+import com.hms.hospitalManagementSystem.department.model.Department;
+import com.hms.hospitalManagementSystem.department.repository.DepartmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,14 +23,17 @@ public class DoctorService {
     private final DoctorRepository doctorRepository;
     private final FileStorageService fileStorageService;
     private final PasswordEncoder passwordEncoder;
+    private final DepartmentRepository departmentRepository;
 
     @Autowired
     public DoctorService(DoctorRepository doctorRepository,
                          FileStorageService fileStorageService,
-                         @Lazy PasswordEncoder passwordEncoder) {
+                         @Lazy PasswordEncoder passwordEncoder,
+                         DepartmentRepository departmentRepository) {
         this.doctorRepository = doctorRepository;
         this.fileStorageService = fileStorageService;
         this.passwordEncoder = passwordEncoder;
+        this.departmentRepository = departmentRepository;
     }
 
     public DoctorResponse createDoctor(DoctorRequest request, MultipartFile imageFile) {
@@ -51,6 +56,12 @@ public class DoctorService {
             profileImagePath = fileStorageService.storeFile(imageFile);
         }
 
+        Department department = null;
+        if (request.getDepartmentId() != null) {
+            department = departmentRepository.findById(request.getDepartmentId())
+                    .orElseThrow(() -> new IllegalArgumentException("Department not found with ID: " + request.getDepartmentId()));
+        }
+
         Doctor doctor = Doctor.builder()
                 .doctorId(generateDoctorId())
                 .fullName(request.getFullName())
@@ -62,6 +73,7 @@ public class DoctorService {
                 .email(request.getEmail())
                 .consultationTypes(request.getConsultationTypes())
                 .departmentWardAssignment(request.getDepartmentWardAssignment())
+                .department(department)
                 .consultationFee(request.getConsultationFee())
                 .password(passwordEncoder.encode(rawPassword))
                 .role("ROLE_DOCTOR")
@@ -115,6 +127,14 @@ public class DoctorService {
         doctor.setConsultationTypes(request.getConsultationTypes());
         doctor.setDepartmentWardAssignment(request.getDepartmentWardAssignment());
         doctor.setConsultationFee(request.getConsultationFee());
+
+        if (request.getDepartmentId() != null) {
+            Department dept = departmentRepository.findById(request.getDepartmentId())
+                    .orElseThrow(() -> new IllegalArgumentException("Department not found with ID: " + request.getDepartmentId()));
+            doctor.setDepartment(dept);
+        } else {
+            doctor.setDepartment(null);
+        }
 
         if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
             doctor.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -188,6 +208,10 @@ public class DoctorService {
         response.setEmail(doctor.getEmail());
         response.setConsultationTypes(doctor.getConsultationTypes());
         response.setDepartmentWardAssignment(doctor.getDepartmentWardAssignment());
+        if (doctor.getDepartment() != null) {
+            response.setDepartmentId(doctor.getDepartment().getId());
+            response.setDepartmentName(doctor.getDepartment().getName());
+        }
         response.setConsultationFee(doctor.getConsultationFee());
         response.setRole(doctor.getRole());
         response.setProfileImagePath(doctor.getProfileImagePath());
