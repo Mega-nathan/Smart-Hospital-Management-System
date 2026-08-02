@@ -22,6 +22,7 @@ interface Staff {
   name: string;
   role: string;
   department: string;
+  departmentId?: number;
   shift: string; // Morning, Evening, Night
   status: 'Active' | 'Off Duty';
 }
@@ -33,6 +34,30 @@ export const StaffManagement = () => {
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
   const [previewStaff, setPreviewStaff] = useState<Staff | null>(null);
   const [loading, setLoading] = useState(false);
+  const [departments, setDepartments] = useState<any[]>([]);
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await fetch('http://localhost:8081/hms-public/departments');
+      if (response.ok) {
+        const data = await response.json();
+        const flatDepts: any[] = [];
+        const flatten = (items: any[]) => {
+          items.forEach(item => {
+            if (item.subDepartments && item.subDepartments.length > 0) {
+              flatten(item.subDepartments);
+            } else {
+              flatDepts.push(item);
+            }
+          });
+        };
+        flatten(data);
+        setDepartments(flatDepts);
+      }
+    } catch (err) {
+      console.error('Error fetching departments:', err);
+    }
+  };
 
   // Filter & Sort states
   const [selectedRole, setSelectedRole] = useState('');
@@ -69,6 +94,7 @@ export const StaffManagement = () => {
 
   useEffect(() => {
     fetchStaff();
+    fetchDepartments();
 
     // Establish real-time SSE stream subscription
     const eventSource = new EventSource('http://localhost:8081/hms-admin/realtime/stream');
@@ -471,25 +497,42 @@ export const StaffManagement = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Role / Job Title</label>
-                  <input 
-                    required 
-                    type="text" 
-                    value={formData.role || ''} 
-                    onChange={e => setFormData({ ...formData, role: e.target.value })} 
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium" 
-                    placeholder="e.g. Nurse, Lab Tech" 
-                  />
+                  <select 
+                    value={formData.role || 'Nurse'}
+                    onChange={e => setFormData({ ...formData, role: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-semibold"
+                  >
+                    <option value="Nurse">Nurse</option>
+                    <option value="Lab Technician">Lab Technician</option>
+                    <option value="Radiology Technician">Radiology Technician</option>
+                    <option value="Receptionist">Receptionist</option>
+                    <option value="Pharmacist">Pharmacist</option>
+                    <option value="Security">Security</option>
+                    <option value="Administrator">Administrator</option>
+                    <option value="Support Staff">Support Staff</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Department</label>
-                  <input 
-                    required 
-                    type="text" 
-                    value={formData.department || ''} 
-                    onChange={e => setFormData({ ...formData, department: e.target.value })} 
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-medium" 
-                    placeholder="e.g. Cardiology" 
-                  />
+                  <select 
+                    required
+                    value={formData.departmentId || ''}
+                    onChange={e => {
+                      const deptId = e.target.value;
+                      const selectedDept = departments.find(d => String(d.id) === String(deptId));
+                      setFormData({ 
+                        ...formData, 
+                        departmentId: deptId ? Number(deptId) : undefined,
+                        department: selectedDept ? selectedDept.name : ''
+                      });
+                    }}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-semibold"
+                  >
+                    <option value="">Select Department</option>
+                    {departments.map(d => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
