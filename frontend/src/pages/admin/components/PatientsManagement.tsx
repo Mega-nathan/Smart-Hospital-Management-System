@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, 
   Edit2, 
@@ -14,8 +14,30 @@ import {
   Heart,
   Activity,
   CheckCircle,
-  FileText
+  FileText,
+  LayoutGrid
 } from 'lucide-react';
+
+interface BedType {
+  id: number;
+  bedCode: string;
+  isOccupied: boolean;
+  occupied?: boolean;
+  departmentId: number;
+  departmentName: string;
+  patientId?: number;
+  patientName?: string;
+  patientStatus?: string;
+}
+
+interface Department {
+  id: number;
+  name: string;
+  parentId?: number | null;
+  parentName?: string | null;
+  subDepartments?: Department[];
+  beds?: BedType[];
+}
 
 interface Patient {
   id: number;
@@ -28,6 +50,10 @@ interface Patient {
   admissionDate: string;
   problem: string;
   status: 'Admitted' | 'Discharged' | 'Under Observation';
+  departmentId?: number;
+  departmentName?: string;
+  bedId?: number;
+  bedCode?: string;
 }
 
 export const PatientsManagement = () => {
@@ -37,6 +63,10 @@ export const PatientsManagement = () => {
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
   const [previewPatient, setPreviewPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Department & Bed states
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [availableBeds, setAvailableBeds] = useState<BedType[]>([]);
 
   // Filter & Sort states
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -52,7 +82,9 @@ export const PatientsManagement = () => {
     contact: '',
     admissionDate: '',
     problem: '',
-    status: 'Admitted'
+    status: 'Admitted',
+    departmentId: undefined,
+    bedId: undefined
   });
 
   const fetchPatients = async () => {
@@ -73,8 +105,58 @@ export const PatientsManagement = () => {
     }
   };
 
+  const getFlatDepartments = (depts: Department[]): Department[] => {
+    let list: Department[] = [];
+    depts.forEach(d => {
+      list.push(d);
+      if (d.subDepartments && d.subDepartments.length > 0) {
+        list = list.concat(getFlatDepartments(d.subDepartments));
+      }
+    });
+    return list;
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await fetch('http://localhost:8081/hms-public/departments');
+      if (response.ok) {
+        const data = await response.json();
+        setDepartments(getFlatDepartments(data));
+      }
+    } catch (err) {
+      console.error('Error fetching departments:', err);
+    }
+  };
+
+  const fetchBedsForDepartment = async (deptId: number) => {
+    try {
+      const response = await fetch(`http://localhost:8081/hms-admin/departments/${deptId}/beds`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableBeds(data);
+      }
+    } catch (err) {
+      console.error('Error fetching beds:', err);
+    }
+  };
+
+  const formDataRef = useRef(formData);
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
+
+  const isModalOpenRef = useRef(isModalOpen);
+  useEffect(() => {
+    isModalOpenRef.current = isModalOpen;
+  }, [isModalOpen]);
+
   useEffect(() => {
     fetchPatients();
+    fetchDepartments();
 
     // Establish real-time SSE stream subscription
     const eventSource = new EventSource('http://localhost:8081/hms-admin/realtime/stream');
@@ -82,6 +164,9 @@ export const PatientsManagement = () => {
     eventSource.addEventListener('patients', (event) => {
       console.log('Real-time patients notification received:', event.data);
       fetchPatients();
+      if (isModalOpenRef.current && formDataRef.current.departmentId) {
+        fetchBedsForDepartment(formDataRef.current.departmentId);
+      }
     });
 
     eventSource.onerror = (err) => {
@@ -97,6 +182,11 @@ export const PatientsManagement = () => {
     if (pat) {
       setEditingPatient(pat);
       setFormData(pat);
+      if (pat.departmentId) {
+        fetchBedsForDepartment(pat.departmentId);
+      } else {
+        setAvailableBeds([]);
+      }
     } else {
       setEditingPatient(null);
       setFormData({
@@ -107,8 +197,11 @@ export const PatientsManagement = () => {
         contact: '',
         admissionDate: new Date().toISOString().split('T')[0],
         problem: '',
-        status: 'Admitted'
+        status: 'Admitted',
+        departmentId: undefined,
+        bedId: undefined
       });
+      setAvailableBeds([]);
     }
     setIsModalOpen(true);
   };
@@ -116,6 +209,7 @@ export const PatientsManagement = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingPatient(null);
+    setAvailableBeds([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -425,6 +519,18 @@ export const PatientsManagement = () => {
                   <FileText className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                   <span className="truncate">Diagnosis: {patient.problem || 'N/A'}</span>
                 </div>
+                {patient.departmentName && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                    <LayoutGrid className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span className="truncate">Dept: {patient.departmentName}</span>
+                  </div>
+                )}
+                {patient.bedCode && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                    <Activity className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span>Bed: {patient.bedCode}</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -542,12 +648,80 @@ export const PatientsManagement = () => {
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Status</label>
                   <select 
                     value={formData.status || 'Admitted'}
-                    onChange={e => setFormData({ ...formData, status: e.target.value as any })}
+                    onChange={e => {
+                      const newStatus = e.target.value as any;
+                      if (newStatus === 'Discharged') {
+                        setFormData({ ...formData, status: newStatus, bedId: undefined });
+                      } else {
+                        setFormData({ ...formData, status: newStatus });
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-semibold"
                   >
                     <option value="Admitted">Admitted</option>
                     <option value="Under Observation">Under Observation</option>
                     <option value="Discharged">Discharged</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Department</label>
+                  <select 
+                    value={formData.departmentId || ''}
+                    onChange={e => {
+                      const deptId = e.target.value ? Number(e.target.value) : undefined;
+                      setFormData({ ...formData, departmentId: deptId, bedId: undefined });
+                      if (deptId) {
+                        fetchBedsForDepartment(deptId);
+                      } else {
+                        setAvailableBeds([]);
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-semibold"
+                  >
+                    <option value="">Select Department</option>
+                    {departments.map(dept => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Assign Bed</label>
+                  <select 
+                    value={formData.bedId || ''}
+                    onChange={e => setFormData({ ...formData, bedId: e.target.value ? Number(e.target.value) : undefined })}
+                    disabled={formData.status === 'Discharged' || !formData.departmentId}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-700 font-semibold disabled:bg-slate-50 disabled:text-slate-400 disabled:border-slate-100"
+                  >
+                    {!formData.departmentId ? (
+                      <option value="">Select department first</option>
+                    ) : formData.status === 'Discharged' ? (
+                      <option value="">Discharged patients don't require beds</option>
+                    ) : (
+                      <>
+                        <option value="">No Bed Assigned (Outpatient)</option>
+                        {availableBeds
+                          .filter(bed => {
+                            const isOccupied = bed.isOccupied || bed.occupied;
+                            return !isOccupied || bed.id === editingPatient?.bedId;
+                          })
+                          .map(bed => (
+                            <option key={bed.id} value={bed.id}>
+                              {bed.bedCode} {bed.id === editingPatient?.bedId ? '(Current)' : ''}
+                            </option>
+                          ))}
+                        {availableBeds.filter(bed => {
+                          const isOccupied = bed.isOccupied || bed.occupied;
+                          return !isOccupied || bed.id === editingPatient?.bedId;
+                        }).length === 0 && (
+                          <option value="" disabled>No beds available in this department</option>
+                        )}
+                      </>
+                    )}
                   </select>
                 </div>
               </div>
@@ -636,6 +810,20 @@ export const PatientsManagement = () => {
                   <span className="block text-[10px] text-slate-400 font-semibold uppercase">Admit Date</span>
                   <span className="text-xs font-extrabold text-slate-700">{previewPatient.admissionDate}</span>
                 </div>
+
+                {previewPatient.departmentName && (
+                  <div className="bg-slate-50 border border-slate-100 p-3 rounded-xl col-span-2">
+                    <span className="block text-[10px] text-slate-400 font-semibold uppercase">Department</span>
+                    <span className="text-xs font-extrabold text-slate-700">{previewPatient.departmentName}</span>
+                  </div>
+                )}
+
+                {previewPatient.bedCode && (
+                  <div className="bg-slate-50 border border-slate-100 p-3 rounded-xl col-span-2">
+                    <span className="block text-[10px] text-slate-400 font-semibold uppercase">Assigned Bed</span>
+                    <span className="text-xs font-extrabold text-slate-700">{previewPatient.bedCode}</span>
+                  </div>
+                )}
               </div>
 
               <div className="mt-5 space-y-3.5 border-t border-slate-100 pt-4">

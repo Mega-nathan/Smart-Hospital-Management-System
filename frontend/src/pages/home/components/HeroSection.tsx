@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
 import bg1 from '../../../assets/bg-image/bg-image-1.png';
@@ -78,15 +79,17 @@ export default function HeroSection({ onBookAppointment }: HeroSectionProps) {
               </div>
             </a>
 
-            <a
-              href="#healthcheck"
+            <Link
+              to="/report-explainer"
               className="flex items-center justify-between p-6 hover:bg-white/10 transition-colors duration-300 group cursor-pointer"
             >
-              <span className="font-bold text-sm tracking-wide uppercase">Book Health Check</span>
+              <span className="font-bold text-sm tracking-wide uppercase flex items-center gap-1.5 text-[rgb(139,235,28)]">
+                Explain Lab Report <span className="bg-[rgb(139,235,28)] text-slate-950 text-[9px] px-1 py-0.5 rounded-full font-black tracking-widest leading-none">AI</span>
+              </span>
               <div className="w-8 h-8 rounded-full border border-white/30 flex items-center justify-center group-hover:bg-white group-hover:text-blue-900 group-hover:scale-105 transition-all">
                 <ArrowRight className="w-4 h-4" />
               </div>
-            </a>
+            </Link>
 
             <a
               href="#facilities"

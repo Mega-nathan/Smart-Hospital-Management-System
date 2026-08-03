@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ChevronDown, Phone, Menu, X } from 'lucide-react';
 
 export default function Navbar() {
@@ -97,6 +98,9 @@ export default function Navbar() {
             </button>
             <div className="absolute top-full left-0 mt-2 bg-white border border-slate-100 shadow-2xl rounded-2xl p-4 w-60 opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300 z-50">
               <div className="space-y-1 text-slate-700 text-[13px] font-bold">
+                <Link to="/report-explainer" className="block px-3 py-2 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all text-blue-600 font-extrabold flex items-center gap-1.5">
+                  Report Explainer <span className="bg-blue-600 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider leading-none">AI</span>
+                </Link>
                 <a href="#admission" className="block px-3 py-2 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all">Admission Guidelines</a>
                 <a href="#insurance" className="block px-3 py-2 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all">Insurance Partners</a>
                 <a href="#visitors" className="block px-3 py-2 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all">Visitor Policy</a>
@@ -176,6 +180,16 @@ export default function Navbar() {
               <div className="pl-3 space-y-2 text-slate-600 text-[13px] font-bold">
                 <a href="#Paediatrics" className="Paediatrics">Cardiology</a>
                 <a href="#Paediatrics" className="Paediatrics">Neurology</a>
+              </div>
+            </div>
+            <div>
+              <span className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5 font-sans">Patient Care</span>
+              <div className="pl-3 space-y-2 text-slate-600 text-[13px] font-bold">
+                <Link to="/report-explainer" className="block py-1 text-blue-600 font-extrabold flex items-center gap-1.5">
+                  Report Explainer <span className="bg-blue-600 text-white text-[8px] px-1 py-0.5 rounded-full font-bold uppercase tracking-wider">AI</span>
+                </Link>
+                <a href="#admission" className="block py-1">Admission Guidelines</a>
+                <a href="#insurance" className="block py-1">Insurance Partners</a>
               </div>
             </div>
           </div>

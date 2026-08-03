@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, DollarSign, Award, ArrowRight, CheckCircle2, User, Phone, Mail, FileText, Video, X, Search, SlidersHorizontal, ArrowUp, ArrowDown } from 'lucide-react';
+import { Calendar, Clock, DollarSign, Award, ArrowRight, Search, SlidersHorizontal, ArrowUp, ArrowDown, User } from 'lucide-react';
 
 interface AvailabilitySlot {
   dayOfWeek: string;

@@ -5,6 +5,7 @@ interface BedType {
   id: number;
   bedCode: string;
   isOccupied: boolean;
+  occupied?: boolean;
   departmentId: number;
   departmentName: string;
   patientId?: number;
@@ -54,6 +55,25 @@ export const DepartmentManagement = () => {
 
   useEffect(() => {
     fetchDepartments();
+
+    // Establish real-time SSE stream subscription
+    const eventSource = new EventSource('http://localhost:8081/hms-admin/realtime/stream');
+    
+    const handleNotification = (event: MessageEvent) => {
+      console.log('Real-time notification received in DepartmentManagement:', event.data);
+      fetchDepartments();
+    };
+
+    eventSource.addEventListener('patients', handleNotification);
+    eventSource.addEventListener('departments', handleNotification);
+
+    eventSource.onerror = (err) => {
+      console.error('SSE Connection failed in DepartmentManagement. Re-connecting...', err);
+    };
+
+    return () => {
+      eventSource.close();
+    };
   }, []);
 
   const handleOpenModal = (dept?: Department) => {
@@ -78,8 +98,8 @@ export const DepartmentManagement = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = editingDept 
-      ? `http://localhost:8081/hms-admin/departments/${editingDept.id}` 
+    const url = editingDept
+      ? `http://localhost:8081/hms-admin/departments/${editingDept.id}`
       : 'http://localhost:8081/hms-admin/departments';
     const method = editingDept ? 'PUT' : 'POST';
 
@@ -141,7 +161,7 @@ export const DepartmentManagement = () => {
   };
 
   const flatDepartments = getFlatDepartments(departments);
-  const filteredDepartments = flatDepartments.filter(d => 
+  const filteredDepartments = flatDepartments.filter(d =>
     d.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -151,7 +171,9 @@ export const DepartmentManagement = () => {
     let colorClasses = '';
     let statusText = 'Available';
 
-    if (!bed.isOccupied) {
+    const isOccupied = bed.isOccupied || bed.occupied;
+
+    if (!isOccupied) {
       colorClasses = 'bg-emerald-50/70 border-emerald-400 text-emerald-800 hover:bg-emerald-50 hover:shadow-emerald-100/50';
       statusText = 'Ready';
     } else {
@@ -159,19 +181,19 @@ export const DepartmentManagement = () => {
         colorClasses = 'bg-slate-100/80 border-slate-400 text-slate-700 hover:bg-slate-100 hover:shadow-slate-200/50';
         statusText = bed.patientName || 'Under Observation';
       } else {
-        colorClasses = 'bg-rose-50 border-rose-400 text-rose-800 hover:bg-rose-100/70 hover:shadow-rose-100/50';
+        colorClasses = 'bg-red-50 border-red-400 text-red-800 hover:bg-red-100/70 hover:shadow-red-100/50';
         statusText = bed.patientName || 'Admitted';
       }
     }
 
     return (
-      <div 
+      <div
         key={bed.id}
         className={`flex items-center gap-3.5 p-3.5 border-2 rounded-2xl w-48 shadow-sm transition-all duration-200 cursor-pointer ${colorClasses} hover:-translate-y-0.5 hover:shadow-md`}
         title={`Bed Code: ${bed.bedCode}\nPatient: ${bed.patientName || 'None'}\nStatus: ${bed.patientStatus || (bed.isOccupied ? 'Occupied' : 'Available')}`}
       >
         <div className="w-3.5 h-7 rounded-full border border-current bg-white shrink-0 shadow-inner flex-none" />
-        
+
         <div className="flex-1 min-w-0 leading-tight">
           <div className="font-bold text-sm tracking-wide">{bed.bedCode}</div>
           <div className="text-[11px] font-semibold opacity-90 truncate mt-0.5" style={{ textTransform: 'capitalize' }}>
@@ -184,31 +206,29 @@ export const DepartmentManagement = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Department & Bed Management</h2>
           <p className="text-slate-500 text-sm mt-1">Monitor bed layouts and manage hospital departments</p>
         </div>
-        
+
         <div className="bg-slate-100/80 p-1.5 rounded-xl border border-slate-200/50 flex gap-1 shadow-inner">
           <button
             onClick={() => setViewMode('visual')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-              viewMode === 'visual'
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'visual'
                 ? 'bg-white text-blue-600 shadow-sm border-slate-200/30'
                 : 'text-slate-500 hover:text-slate-800'
-            }`}
+              }`}
           >
             <LayoutGrid className="w-4 h-4" /> Visual Layout
           </button>
           <button
             onClick={() => setViewMode('manage')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-              viewMode === 'manage'
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'manage'
                 ? 'bg-white text-blue-600 shadow-sm border-slate-200/30'
                 : 'text-slate-500 hover:text-slate-800'
-            }`}
+              }`}
           >
             <Settings className="w-4 h-4" /> Manage
           </button>
@@ -222,11 +242,10 @@ export const DepartmentManagement = () => {
               <button
                 key={rootName}
                 onClick={() => setSelectedRootDept(rootName)}
-                className={`flex-1 text-center py-3 rounded-xl text-sm font-bold tracking-wide transition-all ${
-                  selectedRootDept === rootName
+                className={`flex-1 text-center py-3 rounded-xl text-sm font-bold tracking-wide transition-all ${selectedRootDept === rootName
                     ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
                     : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                }`}
+                  }`}
               >
                 {rootName}
               </button>
@@ -239,7 +258,7 @@ export const DepartmentManagement = () => {
               Ready / Available
             </span>
             <span className="flex items-center gap-2">
-              <span className="w-3.5 h-3.5 rounded bg-rose-500 border border-rose-600" />
+              <span className="w-3.5 h-3.5 rounded bg-red-500 border border-red-600" />
               Occupied (Admitted)
             </span>
             <span className="flex items-center gap-2">
@@ -285,7 +304,7 @@ export const DepartmentManagement = () => {
           <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
             <div className="relative w-full sm:w-64">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input 
+              <input
                 type="text"
                 placeholder="Search departments..."
                 value={searchTerm}
@@ -293,15 +312,15 @@ export const DepartmentManagement = () => {
                 className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>
-            
-            <button 
+
+            <button
               onClick={() => handleOpenModal()}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-all shadow-sm shadow-blue-600/20 font-semibold text-sm"
             >
               <Plus className="w-4 h-4" /> Add Department
             </button>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-600">
               <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase text-xs tracking-wider">
@@ -356,11 +375,11 @@ export const DepartmentManagement = () => {
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Department Name</label>
-                <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" placeholder="e.g. Cardiology"/>
+                <input required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" placeholder="e.g. Cardiology" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Parent Department / Category</label>
-                <select value={formData.parentId} onChange={e => setFormData({...formData, parentId: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white">
+                <select value={formData.parentId} onChange={e => setFormData({ ...formData, parentId: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white">
                   <option value="">— None (Top Level Root Category) —</option>
                   {flatDepartments
                     .filter(d => !editingDept || d.id !== editingDept.id)
@@ -371,13 +390,13 @@ export const DepartmentManagement = () => {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Total Beds</label>
-                <input 
-                  required 
-                  type="number" 
-                  min="0" 
-                  value={formData.totalBeds} 
-                  onChange={e => setFormData({...formData, totalBeds: parseInt(e.target.value) || 0})} 
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" 
+                <input
+                  required
+                  type="number"
+                  min="0"
+                  value={formData.totalBeds}
+                  onChange={e => setFormData({ ...formData, totalBeds: parseInt(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   placeholder="e.g. 5"
                 />
                 {editingDept && (
@@ -414,7 +433,7 @@ export const DepartmentManagement = () => {
                   <p className="text-slate-500 font-medium">{previewDept.parentName || 'Root Category'}</p>
                 </div>
               </div>
-              
+
               <div className="space-y-4">
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col gap-1">
                   <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Capacity & Layout</span>
