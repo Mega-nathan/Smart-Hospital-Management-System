@@ -16,7 +16,8 @@ import {
   Briefcase,
   Upload,
   Shield,
-  MapPin
+  MapPin,
+  Calendar
 } from 'lucide-react';
 import defaultProfile from '../../../assets/default-profile.jpg';
 
@@ -51,7 +52,40 @@ export const DoctorsManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
   const [previewDoctor, setPreviewDoctor] = useState<Doctor | null>(null);
+  const [previewDoctorAppointments, setPreviewDoctorAppointments] = useState<any[]>([]);
+  const [loadingPreviewAppointments, setLoadingPreviewAppointments] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Fetch appointments for the previewed doctor
+  useEffect(() => {
+    if (previewDoctor) {
+      const fetchPreviewDoctorAppointments = async () => {
+        setLoadingPreviewAppointments(true);
+        try {
+          const response = await fetch(`http://localhost:8081/hms-admin/appointments/doctor/${previewDoctor.id}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setPreviewDoctorAppointments(data);
+          } else {
+            console.error('Failed to fetch doctor appointments');
+            setPreviewDoctorAppointments([]);
+          }
+        } catch (err) {
+          console.error('Error fetching doctor appointments:', err);
+          setPreviewDoctorAppointments([]);
+        } finally {
+          setLoadingPreviewAppointments(false);
+        }
+      };
+      fetchPreviewDoctorAppointments();
+    } else {
+      setPreviewDoctorAppointments([]);
+    }
+  }, [previewDoctor]);
 
   // Filtering & Sorting states
   const [selectedSpecialty, setSelectedSpecialty] = useState('');
@@ -925,6 +959,46 @@ export const DoctorsManagement = () => {
                       <p className="text-xs text-slate-400 italic">No schedule slots configured for this practitioner.</p>
                     )}
                   </div>
+                </div>
+
+                {/* Booked Slots Display */}
+                <div className="border-t border-slate-100 pt-4">
+                  <span className="block text-[10px] text-slate-400 font-semibold uppercase mb-2.5 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" /> Booked Slots & Appointments
+                  </span>
+                  {loadingPreviewAppointments ? (
+                    <div className="flex justify-center py-4">
+                      <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  ) : previewDoctorAppointments && previewDoctorAppointments.length > 0 ? (
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      {previewDoctorAppointments.map((app) => (
+                        <div key={app.id} className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-xs space-y-1">
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-slate-700">{app.appointmentDate}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${
+                              app.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700' :
+                              app.status === 'CANCELLED' ? 'bg-red-50 text-red-700' :
+                              'bg-amber-50 text-amber-700'
+                            }`}>
+                              {app.status}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center text-slate-500 font-semibold">
+                            <span>{app.timeSlot}</span>
+                            <span className="text-slate-700 font-bold">{app.patientName}</span>
+                          </div>
+                          {app.notes && (
+                            <p className="text-[10px] text-slate-400 italic bg-white/50 p-1.5 rounded-lg border border-slate-100">
+                              Note: {app.notes}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 italic text-center py-2 bg-slate-50 border border-dashed border-slate-200 rounded-xl">No active bookings for this doctor.</p>
+                  )}
                 </div>
 
                 {/* Contact quick actions */}
