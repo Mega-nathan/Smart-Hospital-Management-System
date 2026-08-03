@@ -3,6 +3,8 @@ import Login from './pages/auth/AdminLogin';
 import DoctorLogin from './pages/auth/DoctorLogin';
 import Home from './pages/home/Home';
 import Dashboard from './pages/admin/dashboard';
+import DoctorDashboard from './pages/doctor/dashboard';
+import ReportExplainer from './pages/home/ReportExplainer';
 import './App.css';
 
 function App() {
@@ -12,6 +14,8 @@ function App() {
       <Route path="/admin" element={<Login />} />
       <Route path="/doctor" element={<DoctorLogin />} />
       <Route path="/admin/dashboard/*" element={<Dashboard />} />
+      <Route path="/doctor/dashboard/*" element={<DoctorDashboard />} />
+      <Route path="/report-explainer" element={<ReportExplainer />} />
     </Routes>
   );
 }
