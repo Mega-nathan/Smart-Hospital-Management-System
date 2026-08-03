@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hms.hospitalManagementSystem.doctor.dto.DoctorProfileUpdateRequest;
 import com.hms.hospitalManagementSystem.doctor.dto.DoctorResponse;
 import com.hms.hospitalManagementSystem.doctor.service.DoctorService;
+import com.hms.hospitalManagementSystem.appointment.service.AppointmentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -25,12 +26,14 @@ public class DoctorSelfControllerTest {
 
     private MockMvc mockMvc;
     private DoctorService doctorService;
+    private AppointmentService appointmentService;
     private ObjectMapper objectMapper;
 
     @BeforeEach
     public void setup() {
         doctorService = mock(DoctorService.class);
-        DoctorSelfController controller = new DoctorSelfController(doctorService);
+        appointmentService = mock(AppointmentService.class);
+        DoctorSelfController controller = new DoctorSelfController(doctorService, appointmentService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
         objectMapper = new ObjectMapper();
     }

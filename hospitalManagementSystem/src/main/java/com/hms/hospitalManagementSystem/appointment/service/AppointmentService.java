@@ -6,6 +6,7 @@ import com.hms.hospitalManagementSystem.appointment.model.Appointment;
 import com.hms.hospitalManagementSystem.appointment.repository.AppointmentRepository;
 import com.hms.hospitalManagementSystem.doctor.model.Doctor;
 import com.hms.hospitalManagementSystem.doctor.repository.DoctorRepository;
+import com.hms.hospitalManagementSystem.common.email.EmailService;
 import com.hms.hospitalManagementSystem.common.realtime.RealtimeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,14 +20,17 @@ public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final DoctorRepository doctorRepository;
     private final RealtimeService realtimeService;
+    private final EmailService emailService;
 
     @Autowired
     public AppointmentService(AppointmentRepository appointmentRepository,
-                              DoctorRepository doctorRepository,
-                              RealtimeService realtimeService) {
+            DoctorRepository doctorRepository,
+            RealtimeService realtimeService,
+            EmailService emailService) {
         this.appointmentRepository = appointmentRepository;
         this.doctorRepository = doctorRepository;
         this.realtimeService = realtimeService;
+        this.emailService = emailService;
     }
 
     public AppointmentResponse createAppointment(AppointmentRequest request) {
@@ -71,6 +75,11 @@ public class AppointmentService {
         appointment.setStatus(status.toUpperCase());
         Appointment updated = appointmentRepository.save(appointment);
 
+        // Send confirmation email to the patient if approved
+        if (status.equalsIgnoreCase("APPROVED")) {
+            emailService.sendAppointmentConfirmationEmail(updated);
+        }
+
         // SSE Real-Time broadcast trigger
         realtimeService.broadcast("appointments", "updated");
 
@@ -88,7 +97,7 @@ public class AppointmentService {
         res.setConsultationType(appointment.getConsultationType());
         res.setNotes(appointment.getNotes());
         res.setStatus(appointment.getStatus());
-        
+
         if (appointment.getDoctor() != null) {
             res.setDoctorId(appointment.getDoctor().getId());
             res.setDoctorName(appointment.getDoctor().getFullName());
